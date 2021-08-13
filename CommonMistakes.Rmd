@@ -1,0 +1,327 @@
+---
+title: "A Common Mistake in Data Analysis (in Psychology/Linguistics): Subsetting data to carry out nested analyses (Part 1 of 2)"
+author: "Shravan Vasishth"
+date: "8/8/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# tl;dr
+
+If you subset the data to analyze effects within one level of a two- or three-level factor, you will usually get misleading results in your null hypothesis significance test. The reason: by subsetting data, you are artificially reducing and/or misestimating the different sources of variance.
+
+To understand how to do these kinds of analyses correctly, read:
+
+**Daniel J. Schad, Shravan Vasishth, Sven Hohenstein, and Reinhold Kliegl. How to capitalize on a priori contrasts in linear (mixed) models: A tutorial. Journal of Memory and Language, 110, 2020.**
+Code: https://osf.io/7ukf6/
+
+# Introduction
+
+A very common mistake I see in psycholinguistics and psychology papers is 
+subsetting the data to carry out an analysis.  The reason people do this is
+so that they can use canned repeated measures ANOVA functions. 
+However, such 
+subsetting has some very interesting consequences: effects that may not actually be statistically significant will become significant. This mistake has the
+potential to seriously mislead people (and that's the majority of psychologists and psycholinguists) who develop theories exclusively based on whether an effect is statistically significant or not. 
+
+Of course, using significance as a criterion for developing theory is 
+[usually a nonsensical thing to do](https://www.sciencedirect.com/science/article/pii/S0749596X18300640?via%3Dihub) in the first place, but let's ignore that issue for now and buy into the 
+fiction that finding significance is a meaningful activity.
+
+I will discuss two examples; the first in this post, and the second in the next post (coming soon). In both examples, I should stress that there is no implication that the authors did anything dishonest---they did their analyses in good faith. The broader problem is that in psychology and linguistics, we are rarely taught much about data analysis. We usually learn a canned cookbook style of analysis. As a consequence, we often end up ignoring model assumptions, with fatal consequences. 10 years ago, I would probably have made the same mistakes as in the two data sets below. 
+
+To the credit of the authors, they released all their data into the public domain; that is a huge thing. My experience is that only about 25% of researchers release their data--most people outright refuse (sometimes very rudely! :) to make the data available.
+
+# Example 1: Swets et al 2008, in Memory and Cognition
+
+The paper we consider first is:
+
+Swets, B., Desmet, T., Clifton, C., & Ferreira, F. (2008). Underspecification of syntactic ambiguities: Evidence from self-paced reading. Memory & Cognition, 36(1), 201-216.
+
+This paper is an influential and important one in psycholinguistics. It has been cited some 263 times according to google scholar. The central claim that the paper makes is that when a sentence has a globally ambiguous syntactic attachment, reading time (this is the self-paced reading method) is faster compared to unambiguous baseline conditions when the language comprehension task is superficial. When the comprehension task involves deep processing, this *ambiguity advantage* disappears. The experiment design is as follows:
+
+There are three syntactic attachment types (a within subjects factor):
+
+(1) Ambiguous
+The maid of the princess who scratched herself in public was terribly humiliated.
+
+(2) N1 attachment
+The son of the princess who scratched himself in public was terribly humiliated.
+
+(3) N2 attachment
+The son of the princess who scratched herself in public was terribly humiliated.
+
+The critical region where the interesting action happens is the post-critical region, the phrase *in public* following the reflexive (himself/herself).
+
+There are three other levels of another, between-subject factor: question type (qtype). After reading each sentence, different subjects were shown either questions about the relative clause (RC questions--this is the deep processing condition), superficial questions, or were asked questions only occasionally.
+
+Thus, this is a 3x3 factorial design, with one within-subjects factor (called attachment), and one between-subjects factor (called qtype). 
+
+We expect an interaction between the attachment and qtype factors. Let's see how the evidence for this interaction was reported in the paper, and where things go wrong.
+
+First, load the data:
+
+```{r}
+## install from: https://github.com/bnicenboim/bcogsci as follows:
+## # install.packages("devtools")
+## devtools::install_github("bnicenboim/bcogsci")
+library(bcogsci)
+data("df_swets08")
+```
+
+The data frame for the post-critical region looks like this:
+
+```{r}
+head(df_swets08)
+```
+
+The dependent measure is RT (reading time); resp.RT is the question response time. We will ignore the latter measure here.
+
+A barplot shows the expected interaction pattern:
+
+```{r}
+means<-round(with(df_swets08,tapply(RT,
+                                    IND=list(attachment,qtype),mean)))
+barplot(means,beside=TRUE)
+```
+
+It does look like the qtype x ambiguity interaction will hold up--there seems to be a difference in the relative heights between the three barplots for qtype.
+
+In preparation for a linear mixed models analysis, we set up orthogonal contrast coding (Helmert contrasts). The idea here is to compare the following groups of conditions:
+
+- The ambiguous vs the unambiguous conditions (amb)
+- The two unambiguous conditions (att)
+- The deep vs the shallow questions types (depth)
+- The two shallow question types (shallow)
+
+```{r}
+## helmert coding for attachment:
+df_swets08$ambig<-ifelse(df_swets08$attachment=="ambiguous",2,-1)
+df_swets08$att<-ifelse(df_swets08$attachment=="N2 attachment",-1,
+                 ifelse(df_swets08$attachment=="N1 attachment",1,
+                        0))
+## helmert coding for depth of processing:
+df_swets08$depth<-ifelse(df_swets08$qtype=="RC questions",2,-1)
+df_swets08$shallow<-ifelse(df_swets08$qtype=="occasional",-1,
+                     ifelse(df_swets08$qtype=="superficial",1,0))
+```
+
+This gives us several new columns, which will be used to fit a linear mixed model:
+
+```{r}
+head(df_swets08)
+## sanity check: is the contrast coding correct?
+xtabs(~attachment+ambig,df_swets08)
+xtabs(~attachment+att,df_swets08)
+xtabs(~qtype+depth,df_swets08)
+xtabs(~qtype+shallow,df_swets08)
+```
+
+We will use this coding below.
+
+OK, now we are ready to go. First, the standard ANOVA analysis, then the LMM analysis.
+
+### Investigating the higher-order interaction using ANOVA vs LMMs
+
+Next, we use a repeated measures ANOVA and then fit a linear mixed model, looking at main effects and interactions. First, we fit a model with raw reading times (this obviously the wrong thing to do, but that's the dependent measure used in the published paper).
+
+#### ANOVA analysis for the higher order interaction
+
+
+```{r}
+## by subjects:
+bysubjdf_swets08<-aggregate(RT~subj+attachment + 
+                        qtype,mean,data=df_swets08)
+library(rstatix)
+res_anova<-anova_test(data = bysubjdf_swets08, 
+           dv = RT, 
+           wid = subj,
+           between = qtype, 
+           within = attachment
+  )
+get_anova_table(res_anova)
+
+## by items
+byitemdf_swets08<-aggregate(RT~item+attachment + 
+                        qtype,mean,data=df_swets08)
+res_anova<-anova_test(data = byitemdf_swets08, 
+           dv = RT, 
+           wid = subj,
+           between = qtype, 
+           within = c(qtype,attachment)
+  )
+get_anova_table(res_anova)
+```
+
+
+
+This looks great; we have the expected interaction. **But if we log-transform the aggregated data, the interaction is gone!!!**
+
+```{r}
+bysubjdf_swets08$logrt<-log(bysubjdf_swets08$RT)
+
+res_anovalog<-anova_test(data = bysubjdf_swets08, 
+           dv = logrt, 
+           wid = subj,
+           between = qtype, 
+           within = attachment
+  )
+get_anova_table(res_anovalog)
+
+byitemdf_swets08$logrt<-log(byitemdf_swets08$RT)
+
+res_anovalog<-anova_test(data = byitemdf_swets08, 
+           dv = logrt, 
+           wid = item,
+           within = c(qtype,attachment)
+  )
+get_anova_table(res_anovalog)
+```
+
+The effect disappears because the significant interaction is due to a few extreme values, which the log transform down-weights.
+
+This is really bad news, because **it means that there is really no evidence in this paper for an ambiguity advantage**.
+
+Now, if you are a psychologist, you are probably feeling outraged: "Hey, cognition happens on the millisecond scale!!! You cannot log-transform the data!". To which I would respond: (a) the Normal likelihood model you assume will predict negative reading times; are you OK with that prediction?, and (b) [try explaining your logic to a real statistician](https://statmodeling.stat.columbia.edu/2019/08/21/you-should-usually-log-transform-your-positive-data/) (good luck, you will need it). For me, it's amusing to watch people hold forth confidently on the importance of not log-transforming reading time data.
+
+#### Linear mixed models analysis for the higher order interaction
+
+Next, we fit a linear mixed model. For the Swets et al claim to hold up, there would have to be an interaction between **ambig** (whether the RC attachment is ambiguous or not) and **depth** (whether the question type was deep or not). 
+
+There is no such interaction, even when one fits the simplest linear mixed models of all (varying intercepts only).
+
+
+```{r}
+library(lme4)
+m1<-lmer(RT ~ (ambig+att)*(depth + shallow) + (1|subj)+
+          (1|item),df_swets08)
+
+## the above is equivalent to:
+m1<-lmer(RT~ambig+depth + ambig:depth +att:depth + shallow+ ambig:shallow + att:shallow + (1|subj)+
+          (1|item),df_swets08)
+
+m1NULL<-lmer(RT~ambig+depth + #ambig:depth 
+             att:depth + shallow+ ambig:shallow + att:shallow + (1|subj)+
+          (1|item),df_swets08)
+
+anova(m1,m1NULL)
+```
+
+There is a better analysis, on the log scale, but there is still no evidence for an interaction. I skip that analysis here.
+
+So, even with a raw RT analysis, there is no evidence for a ambiguity:depth interaction in these data. This is what usually happens to me when I analyze published data; I can only rarely get to the same conclusion as in the published data.
+
+But this was just a sanity check, let's get to the subset analysis next. That's the main issue I want to discuss here.
+
+## Subset analyses
+
+The next thing to look at is whether there an effect of ambiguity nested within the question types: within RC questions vs the non-RC questions, is there an effect of ambiguity? 
+
+In the paper, the authors make the following claims:
+
+- "...in the superficial question conditions, participants read ambiguous sentences faster than disambiguated sentences, and no reading time differences were observed for N1 versus N2 disambiguation." 
+
+
+For this we needed a nested contrast coding: Within RC questions, the effect of ambiguity and attachment, and within the other question types, the effect of ambiguity and attachment.
+
+```
+        Question type:    RC      RC      RC    Super  Super   Super  Occ     Occ     Occ 
+        Sentence type:    A       N1      N2    A       N1      N2    A       N1      N2 
+RCambig                   2       -1      -1    0       0       0     0       0       0
+RCatt                     0       1       -1    0       0       0     0       0       0
+Sambig                    0       0        0    2       1       -1    0        0      0
+Satt                      0       0        0    0        1     -1     0        0      0
+Oambig                    0       0        0    0       0       0     2       -1      1 
+Oatt                      0       0        0    0       0       0     0        1     -1 
+RC                    2       2        2    -1      -1      -1    -1       -1     -1
+NonRC                    0       0        0    1        1      1     -1       -1     -1
+```
+
+Here, we have three pairs of nested comparison, for each of the three question types (RC (relative clause questions), O(ccasional), S(uperficial)): the ambiguity effects (the ambiguous condition vs the mean of N1/N2 attachment), and the N1 vs. N2 attachment effect. The contrast `RC` refers to the effect of the question  type RC questions with the average of the other two question types; and `NonRC` compares the superficial and occasional question type conditions/
+
+Here is the nested coding:
+
+```{r}
+df_swets08$RCambig<-ifelse(df_swets08$qtype=="RC questions" & df_swets08$attachment=="ambiguous", 2,
+             ifelse(df_swets08$qtype=="RC questions" & 
+                      df_swets08$attachment!="ambiguous", -1,0))
+df_swets08$RCatt<-ifelse(df_swets08$qtype=="RC questions" & df_swets08$attachment=="N1 attachment", 1,ifelse(df_swets08$qtype=="RC questions" & 
+                      df_swets08$attachment=="N1 attachment", -1,0))
+
+df_swets08$Sambig<-ifelse(df_swets08$qtype=="superficial" & df_swets08$attachment=="ambiguous", 2,
+             ifelse(df_swets08$qtype=="superficial" & 
+                      df_swets08$attachment!="ambiguous", -1,0))
+df_swets08$Satt<-ifelse(df_swets08$qtype=="superficial" & 
+                        df_swets08$attachment=="N1 attachment", 1,ifelse(df_swets08$qtype=="superficial" & 
+                      df_swets08$attachment=="N1 attachment", -1,0))
+
+df_swets08$Oambig<-ifelse(df_swets08$qtype=="occasional" & df_swets08$attachment=="ambiguous", 2,
+             ifelse(df_swets08$qtype=="occasional" & 
+                      df_swets08$attachment!="ambiguous", -1,0))
+df_swets08$Oatt<-ifelse(df_swets08$qtype=="occasional" & df_swets08$attachment=="N1 attachment", 1,ifelse(df_swets08$qtype=="occasional" & 
+                      df_swets08$attachment=="N1 attachment", -1,0))
+df_swets08$RC<-ifelse(df_swets08$qtype=="RC questions",2,-1)
+df_swets08$NonRC<-ifelse(df_swets08$qtype=="superficial",1,
+                ifelse(df_swets08$qtype=="occasional",-1,0))
+```
+
+#### ANOVA analysis (incorrect)
+
+The way Swets et al analyzed the data was by subsetting the data to the superficial-questions condition. But this approach drastically changes the amount of data available for computing the most important variance component: the standard deviation estimate of the residuals. The aggregation is also wiping out by item variance (although the authors did do a by item analysis, that's still not good enough as we need both variance components--by subject and by item--in the model simultaneously, otherwise we will underestimate the variance).
+
+```{r}
+superficial<-subset(df_swets08,qtype="superficial")
+
+bysubjsup<-aggregate(RT~subj+attachment,mean,
+                     data=superficial)
+res_anovasup<-anova_test(data = bysubjsup, 
+           dv = RT, 
+           wid = subj,
+           within = attachment
+  )
+get_anova_table(res_anovasup)
+```
+
+Here, we get a significant effect of attachment in the superficial conditions. Looks good, right? Wrong. 
+
+#### Analysis using LMMs: subsetted vs full data comparison
+
+Here is the analysis with the full data using nested coding. I fit the most complex model that converged.
+
+```{r}
+m_nested<-lmer(RT~RCambig+RCatt+Sambig+Satt+Oambig+Oatt+
+                 RC+NonRC+(1+RCambig+RCatt||subj)+
+                 (1+RCambig+RCatt||item),df_swets08)
+#summary(m_nested)
+
+## ANOVA test on the overall effect of ambiguity in Superficial:
+m_nestedNULL<-lmer(RT~RCambig+RCatt+Satt+Oambig+Oatt+
+                 RC+NonRC+(1+RCambig+RCatt||subj)+
+                   (1+RCambig+RCatt||item),df_swets08)
+anova(m_nested,m_nestedNULL)
+```
+
+**We get a p-value of 0.11**!! The effect of ambiguity within superficial conditions  is no longer significant!!
+
+Now, suppose we had subset the data to superficial questions only. Let's redo the above analysis, but subsetting the data:
+
+```{r}
+m_nestedsubset<-lmer(RT~Sambig+Satt+(1|subj)+
+                 (1|item),subset(df_swets08,qtype=="superficial"))
+
+## ANOVA test on the overall effect of ambiguity in Superficial:
+m_nestedsubsetNULL<-lmer(RT~Satt +(1|subj)+
+                   (1|item),subset(df_swets08,qtype=="superficial"))
+anova(m_nestedsubset,m_nestedsubsetNULL)
+```
+
+**When we subset the data the way Swets et al did, now we get a significant p-value of 0.01**!!  
+
+# Conclusion
+
+If you subset the data to analyze effects within one level of a two- or three-level factor, you will usually get misleading results. The reason: by subsetting data, you are artificially reducing/misestimating the different sources of variance.
+
+The scientific consequence of this subsetting error is that we have now drawn a misleading conclusion---we think we have evidence for underspecification, but there is no evidence here of such an effect. **This does not mean that there is no underspecification**. There might well be underspecification happening---we just don't know from these data.

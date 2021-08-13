@@ -1,0 +1,869 @@
+---
+title: "A Common Mistake in Data Analysis (in Psychology/Linguistics): Subsetting data to carry out nested analyses (Part 2 of 2)"
+author: "Shravan Vasishth"
+date: "8/8/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# tl;dr
+
+Subsetting data to carry out pairwise comparisons within one level of a 2-level or 3-level factor can lead to misleading results. This happens because by subsetting, we inadvertently drop variance components.
+
+# Introduction
+
+A very common mistake I see in psycholinguistics and psychology papers is 
+subsetting the data to carry out an analysis.  
+
+In this post, I will discuss the second of two examples; the first appeared [here](https://vasishth-statistics.blogspot.com/2021/08/a-common-mistake-in-psychology-and.html). 
+
+It is worth repeating that in both examples, there is absolutely no implication that the authors did anything dishonest---they did their analyses in good faith. The broader problem is that in psychology and linguistics, we are rarely taught much about data analysis. We usually learn a canned cookbook style of analysis. I am pretty sure I have made this mistake in the past---I remember doing this kind of subsetting; this was before I had learnt how to do contrast coding. 
+
+I also want to point out what a big deal it is that the authors released their data. This usually happens in only about 25% of the cases, in my experience. This estimate is remarkably close to that from [published estimates](https://doi.apa.org/doiLanding?doi=10.1037%2F0003-066X.61.7.726) on the willingness of researchers to release data. So, kudos to these researchers for being among the top 25%.
+
+So here is the second example. I originally analyzed this data to create some exercises for my students, but the theoretical questions addressed in this paper are inherently interesting for psycholinguists.
+
+# Example 2: Fedorenko et al 2006, in the Journal of Memory and Language
+
+The paper we consider here is:
+
+[Fedorenko, E., Gibson, E., & Rohde, D. (2006). The nature of working memory capacity in sentence comprehension: Evidence against domain-specific working memory resources. Journal of memory and language, 54(4), 541-553.](https://www.sciencedirect.com/science/article/abs/pii/S0749596X05001506)
+
+This paper has been cited some 267 times at the moment of writing this post, according to google scholar. It appears in one of our top journals, *Journal of Memory and Language* (JML), which apparently has an impact factor of 4.014 (I like the precision to three decimal places! :) according to google. I believe this is high. By comparison, *Cognition* seems to be only at 3.537. 
+
+The central claim that the paper makes is summarized nicely in the abstract; I highlight the relevant part of the abstract below:
+
+*This paper reports the results of a dual-task experiment which investigates the nature of working memory resources used in sentence comprehension. Participants read sentences of varying syntactic complexity (containing subject- and object-extracted relative clauses) while remembering one or three nouns (similar to or dissimilar from the sentence-nouns). **A significant on-line interaction was found between syntactic complexity and similarity between the memory-nouns and the sentence-nouns in the three memory-nouns conditions, such that the similarity between the memory-nouns and the sentence-nouns affected the more complex object-extracted relative clauses to a greater extent than the less complex subject-extracted relative clauses**. These results extend Gordon, Hendrick, and Levine’s (2002) report of a trend of such an interaction. The results argue against the domain-specific view of working memory resources in sentence comprehension (Caplan & Waters, 1999).*
+
+What I will show below is that there is no evidence for the claimed interaction that is highlighted above. The only solid result in this paper is that object relatives are harder to process than subject relatives. Obviously, this is actually interesting for psycholinguists; but it is not a newsworthy result and if that had been the main claim, JML would have rejected this paper (although Cognition seems to love papers showing that object relatives are easier or harder process than subject relatives ;).
+
+I want to stress at the outset that although I show that there is no evidence for the claimed interaction in the abstract above, this does not mean there is no interaction. There might still be. We just don't know either way from this work.
+
+# The original paper and the main claims
+
+The data are from this paper:
+
+Fedorenko, E., Gibson, E., & Rohde, D. (2006). The nature of working memory capacity in sentence comprehension: Evidence against domain-specific working memory resources. Journal of Memory and Language, 54(4), 541-553.
+
+Ev was kind enough to give me the data; many thanks to her for this.
+
+## Design
+
+The study is a self-paced reading experiment, with a 2x2x2 design, the examples are as follows:
+
+1. Factor: One noun in memory set or three nouns
+
+easy: Joel 
+
+hard: Joel-Greg-Andy 
+
+2. Factor: Noun type, either proper name or occupation
+
+name: Joel-Greg-Andy 
+
+occ: poet-cartoonist-voter
+
+3. Factor: Relative clause type (two versions, between subjects but within items---we ignore this detail in this blog post):
+
+(1) 
+a. Subject-extracted, version 1:
+The physician | who consulted the cardiologist | checked the files | in the office.
+b. Subject-extracted, version 2:
+The cardiologist | who consulted the physician | checked the files | in the office.
+
+(2)
+a. Object-extracted, version 1:
+The physician | who the cardiologist consulted | checked the files | in the office.
+b. Object-extracted, version 2:
+The cardiologist | who the physician consulted | checked the files | in the office.
+
+
+As hinted above, this design is not exactly 2x2x2; there is also a within items manipulation of relative clause version. That detail was ignored in the published analysis, so we ignore it here as well.
+
+## The main claims in the paper
+
+The main claim of the paper is laid out in the abstract above, but I repeat it below:
+
+"A significant on-line interaction was found between syntactic complexity and similarity between the memory-nouns and the sentence-nouns in the three memory-nouns conditions, such that the similarity between the memory-nouns and the sentence-nouns affected the more complex object-extracted relative clauses to a greater extent than the less complex subject-extracted relative clauses."
+
+The General Discussion explains this further. I highlight the important parts.
+
+"The most interesting result presented here is **an interaction between syntactic complexity and the memory- noun/sentence-noun similarity during the critical region of the linguistic materials in the hard-load (three memory-nouns) conditions**: people processed object-extracted relative clauses more slowly when they had to maintain a set of nouns that were similar to the nouns in the sentence than when they had to maintain a set of nouns that were dissimilar from the nouns in the sentence; in contrast, for the less complex subject-extracted relative clauses, there was no reading time difference between the similar and dissimilar memory load conditions. In the easy-load (one memory-noun) conditions, no interaction between syntactic complexity and memory-noun/sentence-noun similarity was observed.
+**These results provide evidence against the hypothesis whereby there is a pool of domain-specific verbal working memory resources for sentence comprehension, contra Caplan and Waters (1999).** Specifically, the results reported here extend the off-line results reported by Gordon et al. (2002) who—using a similar dual-task paradigm—provided evidence of an interaction between syntactic complexity and memory-noun/sentence-noun similarity in response-accuracies to questions about the content of the sentences. Although there was also a suggestion of an on-line reading time interaction in Gordon et al.’s experiment, this effect did not reach significance. The effect of memory-noun type in subject-extracted conditions was 12.7 ms per word (50.8ms over the four-word relative clause region), and the effect of memory-noun type in object-extracted conditions was 40.1 ms (160.4 ms over the four-word relative clause region). (Thanks to Bill Levine for providing these means). In the hard-load conditions of our experiment, the effect of memory-noun type in subject-extracted conditions over the four-word relative clause region is 12 ms in raw RTs (18 ms in residual RTs), and the effect of memory- noun type in object-extracted conditions is 324 ms in raw RTs (388 ms in residual RTs). This difference in effect sizes of memory-noun type between Gordon et al.’s and our experiment is plausibly responsible for the interaction observed in the current experiment, and the lack of such an interaction in Gordon et al.’s study. The current results therefore demonstrate that Gordon et al.'s results extend to on-line processing."
+
+## The statistical evidence in the paper for the claim 
+
+Table 3 in the paper (last line) reports the critical interaction claimed for the hard-load conditions (**I added the p-values, which were not provided in the table**):
+
+"Synt x noun type [hard load]: F1(1,43)=6.58, p=0.014;F2(1,31)=6.79, p=0.014".
+
+There is also a minF' provided: $minF'(1,72)=3.34, p=0.07$. I also checked the minF' using the standard formula from a classic paper by Herb Clark:
+
+Clark, H. H. (1973). The language-as-fixed-effect fallacy: A critique of language statistics in psychological research. Journal of Verbal Learning and Verbal Behavior, 12(4), 335-359.
+
+[Aside: The journal "Journal of Verbal Learning and Verbal Behavior" is now called Journal of Memory and Language.]
+
+Here is the minF' function:
+
+```{r}
+minf <- function(f1,f2,n1,n2){
+fprime <- (f1*f2)/(f1+f2)
+n <- round(((f1+f2)*(f1+f2))/(((f1*f1)/n2)+((f2*f2)/n1)))
+pval<-pf(fprime,1,n,lower.tail=FALSE)
+return(paste("minF(1,",n,")=",round(fprime,digits=2),"p-value=",round(pval,2),"crit=",round(qf(.95,1,n))))
+}
+```
+
+And here is the p-value for the minF' calculation:
+
+```{r}
+minf(6.58,6.79,43,31)
+```
+
+The first thing to notice here is that even the published claim (about an RC type-noun type interaction in the hard load condition) is not statistically significant. I have heard through the grapevine that JML allows the authors to consider an effect as statistically significant even if the MinF' is not significant. Apparently the reason is that the MinF' calculation is considered to be conservative. But if they are going to ignore it, why the JML wants people to report a MinF' is a mystery to me.
+
+Declaring a non-significant result to be significant is a very common situation in the Journal of Memory and Language, and other journals. Some other JML papers I know of that report a non-significant minF' as their main finding in the paper, but still act as if they have significance are:
+
+- Dillon et al 2013: "For total times this analysis revealed a three-way interaction that was significant by participants and marginal by items ($F_1(1,39)=8.0,...,p=<0.01; F_1(1,47)=4.0,...,p=<0.055; minF'(1,81)=2,66,p=0.11$)".
+
+- Van Dyke and McElree 2006: "The interaction of LoadxInterference was significant, both by subjects and by items. ... minF'(1,90)=2.35, p = 0.13."
+
+Incidentally, neither of the main claims in these two studies replicated (which is not the same thing as saying that their claims are false---we don't know whether they are false or true):
+
+- Replication attempt of Dillon et al 2013: Lena A. Jäger, Daniela Mertzen, Julie A. Van Dyke, and Shravan Vasishth. Interference patterns in subject-verb agreement and reflexives revisited: A large-sample study. Journal of Memory and Language, 111, 2020.
+- Replication attempt of Van Dyke et al 2006: Daniela Mertzen, Anna Laurinavichyute, Brian W. Dillon, Ralf Engbert, and Shravan Vasishth. Is there cross-linguistic evidence for proactive cue-based retrieval interference in sentence comprehension? Eye-tracking data from English, German and Russian. submitted, 2021
+
+The second paper was rejected by JML, by the way.
+
+# Data analysis of the Fedorenko et al 2006 study
+
+```{r}
+## Download and install library from here:
+## https://github.com/vasishth/lingpsych
+library(lingpsych)
+data("df_fedorenko06")
+head(df_fedorenko06)
+```
+
+As explained above, we have a 2x2x2 design: rctype [obj,subj] x nountype [name, occupation] x load [hard,easy]. Region 2 is the critical region, the entire relative clause, and RT is the reading time for this region. Subject and item columns are self-explanatory.
+
+We notice immediately that something is wrong in this data frame. Compare subject 1 vs the other subjects:
+
+```{r}
+## something is wrong here:
+xtabs(~subj+item,df_fedorenko06)
+```
+
+Subject 1 saw all items twice! There was apparently a bug in the code, or maybe two different subjects were mis-labeled as subject 1. Hard to know. This is one more reason why one should not load and analyze data immediately; always check that the design was correctly implemented. 
+
+We could remove subject 1 from this data, leaving us with 43 subjects:
+
+```{r eval=FALSE}
+df_fedorenko06<-subset(df_fedorenko06,subj!=1)
+sort(unique(df_fedorenko06$subj))
+length(unique(df_fedorenko06$subj))
+```
+
+But we won't do this yet.
+
+## A full 2x2x2 ANOVA analysis:
+
+First, set up an ANOVA style coding for the data, in lmer:
+
+```{r}
+library(lme4)
+df_fedorenko06$noun<-ifelse(df_fedorenko06$nountype=="name",1/2,-1/2)
+df_fedorenko06$ld<-ifelse(df_fedorenko06$load=="hard",1/2,-1/2)
+df_fedorenko06$rc<-ifelse(df_fedorenko06$rctype=="obj",1/2,-1/2)
+df_fedorenko06$nounxld<-df_fedorenko06$noun*df_fedorenko06$ld*2
+df_fedorenko06$nounxrc<-df_fedorenko06$noun*df_fedorenko06$rc*2
+df_fedorenko06$ldxrc<-df_fedorenko06$ld*df_fedorenko06$rc*2
+df_fedorenko06$nounxldxrc<-df_fedorenko06$noun*df_fedorenko06$ld*df_fedorenko06$rc*4
+```
+
+I am using effect coding here ($\pm 1/2$), so that every estimate reflects the estimated difference in means for the particular comparison being made. When multiplying to get an interaction, I have to multiply with a factor of 2 or 4 to get the effect coding back; if I don't do that I will get $\pm 1/4$ or $\pm 1/8$.
+
+I'm using effect coding because I was interested in getting an estimate of the relative clause effect for our [Bayesian textbook's chapter 6, on prior self-elicitation](https://vasishth.github.io/bayescogsci/book/ch-priors.html).
+
+The data frame now has new columns representing the contrast coding:
+
+```{r}
+head(df_fedorenko06)
+```
+
+Display the estimated means in each condition, just to
+get some idea of what's coming.
+
+```{r}
+round(with(df_fedorenko06,tapply(RT,nountype,mean)))
+round(with(df_fedorenko06,tapply(RT,load,mean)))
+round(with(df_fedorenko06,tapply(RT,rctype,mean)))
+```
+
+The authors report raw and residual RTs, but we analyze raw  RTs, and then analyze log RTs. There's actually no point in computing residual RTs (I will discuss this at some point in a different blog post), so we ignore the residuals analysis, although nothing much will change in my main points below even if we were to use residual RTs.
+
+I fit the most complex model I could. If I were a Bayesian (which I am), I would have done the full Monty just because I can, but never mind.
+
+```{r}
+## raw RTs
+m1<-lmer(RT~noun+ld+rc+nounxld + nounxrc + ldxrc + nounxldxrc+(1+ld+rc+ nounxrc + nounxldxrc||subj) + (1+ld+rc+ nounxrc + nounxldxrc||item),df_fedorenko06)
+#summary(m1)
+
+## log RTs
+m2<-lmer(log(RT)~noun+ld+rc+nounxld + nounxrc + ldxrc + nounxldxrc+(1+ld+ nounxrc||subj) + (1+ld+rc||item),df_fedorenko06)
+#summary(m2)
+```
+
+Here is the summary output from the two models:
+
+```{r}
+## raw RTs:
+summary(m1)$coefficients
+## log RTs:
+summary(m2)$coefficients
+```
+
+Both the models only show that object relatives are harder to process than subject relatives. No other main effect or interactions pan out. This (non-)result is actually consistent with what's reported in the paper.
+
+For the story about the hard load conditions (discussed below) to hold up, a prerequisite is that the nounxldxrc interaction be significant, but it is not.
+
+## Subset analyses using repeated measures ANOVA/paired t-test
+
+The Syn x noun interaction in the hard load conditions reported in the paper as the main result was computed by first subsetting the data such that we have only the hard load conditions' data. This leads to a 2x2 design. Let's see what happens when we do this analysis by subsetting the data. We have dropped half the data:
+
+```{r}
+dim(df_fedorenko06)
+fed06hard<-subset(df_fedorenko06,load=="hard")
+dim(fed06hard)
+(1440-720)/1440
+```
+
+Let's first do a repeated measures ANOVA (=paired t-tests) on raw RTs by subject and by item, because that is what Fedorenko et al did (well, they used residual RTs, but nothing will change if we use that dependent measure). 
+
+```{r}
+## aggregate by subject:
+fedsubjRC<-aggregate(RT~subj+rctype,mean,data=fed06hard)
+head(fedsubjRC)
+t.test(RT~rctype,paired=TRUE,fedsubjRC)
+
+fedsubjN<-aggregate(RT~subj+nountype,mean,data=fed06hard)
+head(fedsubjN)
+t.test(RT~nountype,paired=TRUE,fedsubjN)
+
+## interaction: diff between obj and subj in name vs in occ conditions:
+RCocc<-aggregate(RT~subj+rctype,mean,data=subset(fed06hard,nountype=="occ"))
+diff_occ<-subset(RCocc,rctype=="obj")$RT-subset(RCocc,rctype=="subj")$RT
+
+RCname<-aggregate(RT~subj+rctype,mean,data=subset(fed06hard,nountype=="name"))
+diff_name<-subset(RCname,rctype=="obj")$RT-subset(RCname,rctype=="subj")$RT
+
+## by-subject interaction:
+t.test(diff_occ,diff_name,paired=TRUE)
+```
+
+One can of course do this with an ANOVA function:
+
+```{r}
+fedsubjANOVA<-aggregate(RT~subj+rctype+nountype,mean,data=fed06hard)
+head(fedsubjANOVA)
+
+library(rstatix)
+subj_anova_hard<-anova_test(data = fedsubjANOVA, 
+           dv = RT, 
+           wid = subj,
+           within = c(rctype,nountype)
+  )
+get_anova_table(subj_anova_hard)
+
+```
+
+We see a significant interaction by subjects, as reported in the paper.
+
+By items:
+
+```{r}
+## aggregate by item:
+feditemRC<-aggregate(RT~item+rctype,mean,data=fed06hard)
+head(feditemRC)
+t.test(RT~rctype,paired=TRUE,feditemRC)
+
+feditemN<-aggregate(RT~item+nountype,mean,data=fed06hard)
+head(feditemN)
+t.test(RT~nountype,paired=TRUE,feditemN)
+
+## interaction: diff between obj and item in name vs in occ conditions:
+RCocc<-aggregate(RT~item+rctype,mean,data=subset(fed06hard,nountype=="occ"))
+diff_occ<-subset(RCocc,rctype=="obj")$RT-subset(RCocc,rctype=="subj")$RT
+
+RCname<-aggregate(RT~item+rctype,mean,data=subset(fed06hard,nountype=="name"))
+diff_name<-subset(RCname,rctype=="obj")$RT-subset(RCname,rctype=="subj")$RT
+
+## by-item interaction:
+t.test(diff_occ,diff_name,paired=TRUE)
+```
+
+Using ANOVA:
+
+```{r}
+feditemANOVA<-aggregate(RT~item+rctype+nountype,mean,data=fed06hard)
+head(feditemANOVA)
+
+item_anova_hard<-anova_test(data = feditemANOVA, 
+           dv = RT, 
+           wid = item,
+           within = c(rctype,nountype)
+  )
+get_anova_table(item_anova_hard)
+```
+
+Notice that even if the by-subjects and by-items analyses are significant, the MinF' is not. As Clark points out in his paper, MinF' is critical to compute in order to draw inferences about the hypothesis test. 
+
+Since $F=t^2$, we can compute the MinF'.
+
+```{r}
+F1<-2.13^2
+F2<-2.03^2
+minf(F1,F2,43,31)
+```
+
+We can do this MinF' calculation with the ANOVA output as well:
+
+```{r}
+minf(4.541,4.11,43,31)
+```
+
+We get exactly the same MinF' in both the t-tests and ANOVA because they are doing the same test.
+
+## The upshot of the ANOVA/t-test analyses using subsetted data
+
+The higher-order interaction is not significant. This diverges from  the main claim in the paper.
+
+Now, let's do the same by-subjects and items analyses using logRTs:
+
+```{r}
+fed06hard$logRT<-log(fed06hard$RT)
+```
+
+```{r}
+## aggregate by subject:
+fedsubjRC<-aggregate(logRT~subj+rctype,mean,data=fed06hard)
+head(fedsubjRC)
+t.test(logRT~rctype,paired=TRUE,fedsubjRC)
+
+fedsubjN<-aggregate(logRT~subj+nountype,mean,data=fed06hard)
+head(fedsubjN)
+t.test(logRT~nountype,paired=TRUE,fedsubjN)
+
+## interaction: diff between obj and subj in name vs in occ conditions:
+RCocc<-aggregate(logRT~subj+rctype,mean,data=subset(fed06hard,nountype=="occ"))
+diff_occ<-subset(RCocc,rctype=="obj")$logRT-subset(RCocc,rctype=="subj")$logRT
+
+RCname<-aggregate(logRT~subj+rctype,mean,data=subset(fed06hard,nountype=="name"))
+diff_name<-subset(RCname,rctype=="obj")$logRT-subset(RCname,rctype=="subj")$logRT
+
+## by-subject interaction:
+t.test(diff_occ,diff_name,paired=TRUE)
+```
+
+Now the by-subjects t-test for the interaction is nowhere near significant (cf the raw RTs analysis above). This means that there were some extreme values in the by-subjects data driving the effect.
+
+By items:
+
+```{r}
+## aggregate by item:
+feditemRC<-aggregate(logRT~item+rctype,mean,data=fed06hard)
+head(feditemRC)
+t.test(logRT~rctype,paired=TRUE,feditemRC)
+
+feditemN<-aggregate(logRT~item+nountype,mean,data=fed06hard)
+head(feditemN)
+t.test(logRT~nountype,paired=TRUE,feditemN)
+
+## interaction: diff between obj and item in name vs in occ conditions:
+RCocc<-aggregate(logRT~item+rctype,mean,data=subset(fed06hard,nountype=="occ"))
+diff_occ<-subset(RCocc,rctype=="obj")$logRT-subset(RCocc,rctype=="subj")$logRT
+
+RCname<-aggregate(logRT~item+rctype,mean,data=subset(fed06hard,nountype=="name"))
+diff_name<-subset(RCname,rctype=="obj")$logRT-subset(RCname,rctype=="subj")$logRT
+
+## by-item interaction:
+t.test(diff_occ,diff_name,paired=TRUE)
+```
+
+Here, too, the interaction by items is not significant.
+
+**Conclusion**: the MinF' values show that there is no evidence for an interaction in the hard conditions, regardless of whether we use raw or log RTs. 
+
+But there is actually more to this story, as I show below with linear mixed models analyses.
+
+## Incorrect and correct lmer analysis
+
+Now, we do the same analyses as above, but in lmer instead of paired t-tests, and by subsetting the data as Fedorenko did.
+
+In order to compare this model (m4) with the correct analysis (model m6 below), we change the coding to be $\pm 1$ instead of $\pm 1/2$.
+
+```{r}
+## 2x2 anova by doing subsetting: this is the main result in the paper
+fed06hard<-subset(df_fedorenko06,load=="hard")
+fed06hard$noun<-fed06hard$noun*2
+fed06hard$rc<-fed06hard$rc*2
+fed06hard$nounxrc<-fed06hard$nounxrc*2
+fed06hard<-fed06hard[,c("subj","item","RT","noun","rc","nounxrc")]
+head(fed06hard)
+```
+
+Here is the analysis using subsetting (this is incorrect):
+
+```{r}
+m4<-lmer(RT~noun+rc+nounxrc+(1+rc+nounxrc||subj) + (1+noun+nounxrc||item),fed06hard)
+summary(m4)
+summary(m4)$coefficients
+```
+
+The above analysis shows a significant interaction. But this analysis is incorrect because it's dropping half the data, which contributes to misestimating the variance components.
+
+Next, we will do the above analysis using all the data (no subsetting to load==hard conditions). We do this by defining nested contrasts
+
+The design is:
+```
+## Nested analysis:
+## load   e   e   e   e   h   h    h  h
+## noun   o   o   n   n   o   o    n  n
+## rctyp  s   o   s   o   s   o   s   o
+#         a   b   c   d   e   f   g   h
+#---------------------------------------          
+#load     -1  -1  -1  -1  1   1    1   1          
+#nn_easy  -1   -1  1   1   0   0   0   0
+#rc_easy  -1   1  -1   1   0   0   0   0
+#nn_hard  0    0  0    0  -1   -1  1   1 
+#rc_hard  0    0  0    0  -1   1  -1   1 
+```
+Define the nested coding. This time I use $\pm 1$ coding; this is just in order to facilitate quick model specification by multiplying main effects in the lmer equation.
+
+I could have used $\pm 1/2$ and the only thing that would give me is that the estimated coefficients would reflect the difference in means, but I would need to define interactions as separate columsn (as done above). The statistical results will not change as a function of these two coding schemes.
+
+```{r}
+df_fedorenko06$ld<-ifelse(df_fedorenko06$load=="hard",1,-1)
+df_fedorenko06$nn_easy<-ifelse(df_fedorenko06$load=="easy" & df_fedorenko06$nountype=="occ",-1,
+                               ifelse(df_fedorenko06$load=="easy" & df_fedorenko06$nountype=="name",1,0))
+df_fedorenko06$nn_hard<-ifelse(df_fedorenko06$load=="hard" & df_fedorenko06$nountype=="occ",-1,
+                               ifelse(df_fedorenko06$load=="hard" & df_fedorenko06$nountype=="name",1,0))
+
+df_fedorenko06$rc_easy<-ifelse(df_fedorenko06$load=="easy" & df_fedorenko06$rctype=="subj",-1,
+                               ifelse(df_fedorenko06$load=="easy" & df_fedorenko06$rctype=="obj",1,0))
+df_fedorenko06$rc_hard<-ifelse(df_fedorenko06$load=="hard" & df_fedorenko06$rctype=="subj",-1,
+                               ifelse(df_fedorenko06$load=="hard" & df_fedorenko06$rctype=="obj",1,0))
+```
+
+```{r}
+m6<-lmer(RT~ld + nn_hard*rc_hard + nn_easy*rc_easy +
+           (1+ld + nn_hard:rc_hard ||subj) + 
+           (1+ld + nn_hard:rc_hard + nn_easy||item),df_fedorenko06)
+summary(m6)
+#qqPlot(residuals(m6))
+#summary(m6)$coefficients
+
+## compare with a null model,  without the 
+## nn_hard:rc_hard  interaction:
+m6null<-lmer(RT~ld + nn_hard+rc_hard + nn_easy*rc_easy +(1+ld + nn_hard:rc_hard ||subj) + (1+ld + nn_hard:rc_hard + nn_easy||item),df_fedorenko06)
+
+anova(m6,m6null)
+```
+
+Removing subject 1 weakens the already non-significant interaction:
+
+```{r}
+m6a<-lmer(RT~ld + nn_hard*rc_hard + nn_easy*rc_easy +(1+ld + nn_hard:rc_hard ||subj) + (1+ld + nn_hard:rc_hard + nn_easy||item),subset(df_fedorenko06,subj!=1))
+#summary(m6a)
+#qqPlot(residuals(m6))
+#summary(m6)$coefficients
+
+## compare with a null model,  without the 
+## nn_hard:rc_hard  interaction:
+m6anull<-lmer(RT~ld + nn_hard+rc_hard + nn_easy*rc_easy +(1+ld + nn_hard:rc_hard ||subj) + (1+ld + nn_hard:rc_hard + nn_easy||item),subset(df_fedorenko06,subj!=1))
+
+anova(m6a,m6anull)
+```
+
+Notice that the interaction (nn_hard:rc_hard) is gone  once we take the full data into account.
+
+```{r}
+## subsetted data:
+summary(m4)$coefficients[4,]
+## full data:
+summary(m6)$coefficients[7,]
+```
+
+What has changed is the standard error of the interaction (in m4 it is 51 ms, in m6 it is 55 ms); the increase in the SE is due to the increased number of variance components in the full model with the nested contrast coding. The subsetted analysis (m4, and the paired t-tests) are hiding important sources of variance and giving a misleading result.
+
+Here are the variance components in model m4 (the subsetted data):
+
+```
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ subj     (Intercept)  915329   956.73 
+ subj.1   rc            42511   206.18 
+ subj.2   nounxrc        1570    39.62 
+ item     (Intercept)   56296   237.27 
+ item.1   noun           4123    64.21 
+ item.2   nounxrc       11841   108.82 
+ Residual             1540203  1241.05 
+```
+
+Here are the variance components in the full model:
+
+```
+Random effects:
+ Groups   Name            Variance Std.Dev.
+ subj     (Intercept)      611472   781.97 
+ subj.1   ld               317412   563.39 
+ subj.2   nn_hard:rc_hard   20321   142.55 
+ item     (Intercept)       36172   190.19 
+ item.1   ld                65756   256.43 
+ item.2   nn_easy            1912    43.73 
+ item.3   nn_hard:rc_hard   25229   158.84 
+ Residual                 1252759  1119.27 
+```
+
+Notice that there are still some problems in these models:
+
+```{r}
+library(car)
+qqPlot(residuals(m6))
+boxplot(RT~rctype,df_fedorenko06)
+```
+
+What if we limit reading time to 10 seconds? What percent of the data would we lose? It turns out, very little, 0.3%:
+
+```{r}
+nfull<-dim(df_fedorenko06)[1]
+nfull
+n10000<-dim(subset(df_fedorenko06,RT<10000))[1]
+100*(nfull-n10000)/nfull
+```
+
+```{r}
+m7<-lmer(RT~ld + nn_hard*rc_hard + nn_easy*rc_easy +(1+ld + nn_hard:rc_hard ||subj) + (1+ld + nn_hard:rc_hard + nn_easy||item),subset(df_fedorenko06,RT<10000))
+summary(m7)$coefficients
+```
+
+Notice that the interaction has shrunk from -102 ms (SE 50) in model m6 to -68 (52) in m7. This means there were a very small number of data points (0.3%) that were influential and leading to a much larger estimate.
+
+Visualize these extreme values:
+
+```{r}
+boxplot(RT~rctype+nountype,df_fedorenko06)
+```
+
+Plot the data without 0.3% of the extreme data:
+
+```{r}
+boxplot(RT~rctype+nountype,subset(df_fedorenko06,RT<10000))
+```
+
+On the log ms scale, the extreme values are down-weighted:
+
+
+```{r}
+boxplot(log(RT)~rctype+nountype,df_fedorenko06)
+```
+
+This means we can analyze the log ms data without deleting any extreme values:
+
+```{f}
+m8<-lmer(log(RT)~ld + nn_hard*rc_hard + nn_easy*rc_easy +(1+ld + nn_hard:rc_hard ||subj) + (1+ld + nn_hard:rc_hard||item),df_fedorenko06)
+summary(m8)$coefficients
+qqPlot(residuals(m8))
+```
+
+Basically, there is no hint of an interaction between noun type and RC in the hard conditions, contrary to the claim in the paper. This was the only finding in the paper, and it is not supported by the data. The key issue was subsetting the data, which inadvertently conceals important sources of variances.
+
+# Conclusion
+
+If you subset the data to analyze effects within one level of a two- or three-level factor, you will usually get misleading results. The reason: by subsetting data, you are artificially reducing/misestimating the different sources of variance.
+
+The scientific consequence of this subsetting error is that we have now drawn a misleading conclusion---we think we have evidence for an effect of working memory load on sentence processing difficulty. In fact, the data could be seen as consistent with exactly the opposite claim, that by Caplan and Waters, 1999. Does this mean that the claim in the Fedorenko et al paper was wrong? No! The claim may well be true. We just don't know from these data.
+
+# Simulation demonstrating the subsetting problem
+
+Here, we demonstrate what happens to SE if we subset data as described above. The steps I take are:
+
+1. Define code for simulating a 2x2x2 repeated measures design.
+2. Estimate parameters from the full model based on the Fedorenko data (nested analysis).
+3. Fit linear mixed models on simulated data: one model subsets the data, the other model uses the full data. 4. Compare the SEs of the critical interaction in the two models.
+
+### Define simulation code
+
+```{r, simfunction, echo=TRUE, eval=TRUE}
+library(MASS)
+## assumes that no. of subjects and no. of items is divisible by 8.
+gen_fake_lnorm2x2x2<-function(ncond=8,
+                              nitem=NULL,
+                         nsubj=NULL,
+                         beta=NULL,
+                         Sigma_u=NULL, # subject vcov matrix
+                         Sigma_w=NULL, # item vcov matrix
+                         sigma_e=NULL){
+grouping<-matrix(rep(NA,ncond*ncond),ncol=ncond)
+grouping[1,]<-1:8
+grouping[2,]<-c(2:8,1)
+grouping[3,]<-c(3:8,1:2)
+grouping[4,]<-c(4:8,1:3)
+grouping[5,]<-c(5:8,1:4)
+grouping[6,]<-c(6:8,1:5)
+grouping[7,]<-c(7:8,1:6)
+grouping[8,]<-c(8,1:7)
+
+  ## prepare data frame for 8 condition latin square:
+  g1<-data.frame(item=1:nitem,
+                 cond=rep(grouping[1,],nitem/ncond))
+  g2<-data.frame(item=1:nitem,
+                 cond=rep(grouping[2,],nitem/ncond))
+  g3<-data.frame(item=1:nitem,
+                 cond=rep(grouping[3,],nitem/ncond))
+  g4<-data.frame(item=1:nitem,
+                 cond=rep(grouping[4,],nitem/ncond))
+  g5<-data.frame(item=1:nitem,
+                 cond=rep(grouping[5,],nitem/ncond))
+  g6<-data.frame(item=1:nitem,
+                 cond=rep(grouping[6,],nitem/ncond))
+  g7<-data.frame(item=1:nitem,
+                 cond=rep(grouping[7,],nitem/ncond))
+  g8<-data.frame(item=1:nitem,
+                 cond=rep(grouping[8,],nitem/ncond))
+  
+  
+  ## assemble data frame:
+  gp1<-g1[rep(seq_len(nrow(g1)), 
+              nsubj/ncond),]
+  gp2<-g2[rep(seq_len(nrow(g2)), 
+              nsubj/ncond),]
+  gp3<-g3[rep(seq_len(nrow(g3)), 
+              nsubj/ncond),]
+  gp4<-g4[rep(seq_len(nrow(g4)), 
+              nsubj/ncond),]
+  gp5<-g5[rep(seq_len(nrow(g5)), 
+              nsubj/ncond),]
+  gp6<-g6[rep(seq_len(nrow(g6)), 
+              nsubj/ncond),]
+  gp7<-g7[rep(seq_len(nrow(g7)), 
+              nsubj/ncond),]
+  gp8<-g8[rep(seq_len(nrow(g8)), 
+              nsubj/ncond),]
+  
+  fakedat<-rbind(gp1,gp2,gp3,gp4,gp5,gp6,gp7,gp8)
+  
+  ## add subjects:
+  fakedat$subj<-rep(1:nsubj,each=nitem)
+
+  ## name conditions:
+## Nested analysis:
+# Cond:   1   2   3   4   5   6    7  8  
+## load   e   e   e   e   h   h    h  h
+## noun   o   o   n   n   o   o    n  n
+## rctyp  s   o   s   o   s   o   s   o
+fakedat$load<-ifelse(fakedat$cond%in%c(1,2,3,4),"easy","hard")
+fakedat$nountype<-ifelse(fakedat$cond%in%c(1,2,5,6),"occ","name")
+fakedat$rctype<-ifelse(fakedat$cond%in%c(1,3,5,7),"subj","obj")
+
+## nested contrast coding:
+fakedat$ld<-ifelse(fakedat$load=="easy",1,-1)
+
+fakedat$nn_easy<-ifelse(fakedat$load=="easy" & fakedat$nountype=="occ",-1,
+                               ifelse(fakedat$load=="easy" & fakedat$nountype=="name",1,0))
+
+fakedat$nn_hard<-ifelse(fakedat$load=="hard" & fakedat$nountype=="occ",-1,
+                               ifelse(fakedat$load=="hard" & fakedat$nountype=="name",1,0))
+
+fakedat$rc_easy<-ifelse(fakedat$load=="easy" & fakedat$rctype=="subj",-1,
+                               ifelse(fakedat$load=="easy" & fakedat$rctype=="obj",1,0))
+fakedat$rc_hard<-ifelse(fakedat$load=="hard" & fakedat$rctype=="subj",-1,
+                               ifelse(fakedat$load=="hard" & fakedat$rctype=="obj",1,0))
+    
+## subject random effects:
+  u<-mvrnorm(n=length(unique(fakedat$subj)),
+             mu=c(rep(0,8)),Sigma=Sigma_u)
+  
+## item random effects
+  w<-mvrnorm(n=length(unique(fakedat$item)),
+             mu=c(rep(0,8)),Sigma=Sigma_w)
+
+  ## generate data row by row:  
+  N<-dim(fakedat)[1]
+  rt<-rep(NA,N)
+  for(i in 1:N){
+    rt[i] <- rlnorm(1,beta[1] + 
+                      u[fakedat[i,]$subj,1] +
+                      w[fakedat[i,]$item,1] + 
+                      (beta[2]+u[fakedat[i,]$subj,2]+
+                         w[fakedat[i,]$item,2])*fakedat$ld[i]+
+                      (beta[3]+u[fakedat[i,]$subj,3]+
+                         w[fakedat[i,]$item,3])*fakedat$nn_easy[i]+
+                      (beta[4]+u[fakedat[i,]$subj,4]+
+                         w[fakedat[i,]$item,4])*fakedat$nn_hard[i]+
+                      (beta[5]+u[fakedat[i,]$subj,5]+
+                         w[fakedat[i,]$item,5])*fakedat$rc_easy[i]+
+                      (beta[6]+u[fakedat[i,]$subj,6]+                       
+                         w[fakedat[i,]$item,6])*fakedat$rc_hard[i]+
+                      (beta[7]+u[fakedat[i,]$subj,7]+
+                         w[fakedat[i,]$item,7])*(fakedat$nn_easy[i]:fakedat$rc_easy[i])+
+                      (beta[8]+u[fakedat[i,]$subj,8]+
+                         w[fakedat[i,]$item,8])*(fakedat$nn_hard[i]:fakedat$rc_hard[i]),
+                    
+                   sigma_e) 
+  }   
+  fakedat$rt<-rt
+  fakedat$subj<-factor(fakedat$subj)
+  fakedat$item<-factor(fakedat$item)
+  fakedat
+  }
+```
+
+## Fit model to full data
+
+In order to estimate all parameters, we will have to fit a Bayesian model.
+
+```{r eval=FALSE}
+library(brms)
+priors <- c(
+  prior(normal(0,10), class = Intercept),
+  prior(normal(0,1), class = b),
+  prior(normal(0, 1), class = sd),
+  prior(normal(0, 1), class = sigma)
+)
+
+m_brms<-brm(RT~ 1+ld + nn_easy + rc_easy + nn_hard + rc_hard + 
+              nn_easy:rc_easy + nn_hard:rc_hard+
+              (1+ld + nn_easy + rc_easy + nn_hard + rc_hard + 
+              nn_easy:rc_easy + nn_hard:rc_hard|subj)+
+              (1+ld + nn_easy + rc_easy + nn_hard + rc_hard + 
+              nn_easy:rc_easy + nn_hard:rc_hard|item),
+            family=lognormal(),
+        prior=priors,
+        chains=4,
+        iter = 2000,
+        warmup =1000,
+        control = list(adapt_delta = 0.99,
+                               max_treedepth=15),
+        df_fedorenko06)
+## save model to avoid recomputation:
+#save(m_brms,file="m_brms.rda")
+```
+
+## Extract parameter estimate means from model
+
+Next, we extract the means of each of the parameters: 8 fixed effects, one standard deviation, 16 random intercepts and slopes by subject and item, and then 56 (gulp) correlations between subject intercepts and slopes and item intercepts and slopes.
+
+```{r}
+load("m_brms.rda")
+post<-brms::posterior_summary(m_brms)[1:81,1]
+beta_names<-names(beta)
+itemsd<-post[9:16]
+itemcor<-post[25:52]
+subjsd<-post[17:24]
+subjcor<-post[53:80]
+sigma_e<-post[81]
+```
+
+Next, assemble the correlation matrices. This would normally be very tedious because the off-diagonals have to be filled with the correlations. Luckily, R has a function for this that makes it really easy.
+
+```{r}
+diagvals<-rep(1,8)
+subjcorm <- matrix(NA, ncol = length(diagvals), 
+                   nrow = length(diagvals))
+subjcorm[upper.tri(subjcorm)] <- subjcor
+
+## fill up lower triangular matrix:
+t_subjcorm<-t(subjcorm)
+t_subjcorm[upper.tri(t_subjcorm)] <- subjcor
+## symmetric matrix:
+subjcorm<-t_subjcorm
+diag(subjcorm)<-diagvals
+## symmetric:
+subjcorm==t(subjcorm)
+```
+
+Do the same for the items correlation matrix:
+
+```{r}
+itemcorm <- matrix(NA, ncol = length(diagvals), 
+                   nrow = length(diagvals))
+itemcorm[upper.tri(itemcorm)] <- itemcor
+
+## fill up lower triangular matrix:
+t_itemcorm<-t(itemcorm)
+t_itemcorm[upper.tri(t_itemcorm)] <- itemcor
+## symmetric matrix:
+itemcorm<-t_itemcorm
+diag(itemcorm)<-diagvals
+## symmetric:
+itemcorm==t(itemcorm)
+```
+
+Next, assemble the variance-covariance matrices for subjects and items' random effects:
+
+```{r}
+Sigma_u<-SIN::sdcor2cov(stddev=subjsd,
+                          corr=subjcorm)
+Sigma_w<-SIN::sdcor2cov(stddev=itemsd,
+                        corr=itemcorm)
+```
+
+## Simulate data 
+
+In this simulation, we will fit two models, one with the full data, and one with the subsetted data. Then, we will check how often the SE associated with the critical interaction is larger in the full vs the subsetted model.
+
+I computed some other summary statistics too (like power for the interaction), but looking at SEs summarizes my main point.
+
+```{r eval=FALSE}
+nsim<-100
+betaintsefull<-betaintsesubset<-sigmafull<-sigmasubset<-tvalsfull<-tvalssubset<-rep(NA,nsim)
+for(i in 1:nsim){
+  print(paste("iteration",i,sep=" "))
+fakedat<-gen_fake_lnorm2x2x2(ncond=8,
+                    nitem=32,
+                    nsubj=48,
+                         beta=beta,
+                         Sigma_u=Sigma_u, # subject vcov matrix
+                         Sigma_w=Sigma_w, # item vcov matrix
+                         sigma_e=sigma_e)
+
+mfull<-lmer(log(rt)~ld + nn_easy+rc_easy + nn_hard+rc_hard + nn_easy:rc_easy + nn_hard:rc_hard +
+           (1+ld + nn_easy+rc_easy + nn_hard+rc_hard + nn_easy:rc_easy + nn_hard:rc_hard ||subj) + 
+           (1+ld + nn_easy+rc_easy + nn_hard+rc_hard + nn_easy:rc_easy + nn_hard:rc_hard||item),fakedat,
+           control=lmerControl(optimizer="nloptwrap", calc.derivs = FALSE))
+sigmafull[i]<-sigma(mfull)
+tvalsfull[i]<-summary(mfull)$coefficients[8,3]
+betaintsefull[i]<-summary(mfull)$coefficients[8,2]
+
+
+## subset the data:
+fakehard<-subset(fakedat,load=="hard")
+fakehard$noun<-ifelse(fakehard$nountype=="occ",1,-1)
+fakehard$rc<-ifelse(fakehard$rctype=="obj",1,-1)
+msubset<-lmer(log(rt)~noun+rc+noun:rc+(1+noun+rc+noun:rc||subj) + (1+noun+rc+noun:rc||item),fakehard,
+              control=lmerControl(optimizer="nloptwrap", calc.derivs = FALSE))
+sigmasubset[i]<-sigma(msubset)
+tvalssubset[i]<-summary(msubset)$coefficients[4,3]
+betaintsesubset[i]<-summary(msubset)$coefficients[4,2]
+}
+
+save(betaintsefull,file="betaintsefull.rda")
+save(betaintsesubset,file="betaintsesubset.rda")
+```
+
+The proportion of times that the SE of the interaction in the full model is larger than in the subsetted model:
+
+```{r}
+load("betaintsefull.rda")
+load("betaintsesubset.rda")
+
+mean(betaintsefull>betaintsesubset)
+```
+
+This means that the interaction has an overly enthusiastic SE for the critical interaction, when we subset the data. That's not a good thing.
+
+PS If there are any mistakes in the code above, please let me know and I will correct them.
